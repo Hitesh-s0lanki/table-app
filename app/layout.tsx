@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Sidebar from "@/components/sidebar";
+import { Toaster } from "@/components/ui/sonner";
+import ModalProviders from "@/components/providers/modal-providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className=" h-full w-full flex ">
+          <Toaster />
+          <ModalProviders />
+          <Sidebar />
+          <main className=" h-full w-full overflow-auto">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }

@@ -3,7 +3,7 @@ import ErrorPage from "@/components/error";
 import { Category } from "@/types";
 import axios from "axios";
 
-const HomePage = async () => {
+const CategoryPage = async () => {
   const { data, status } = await axios.get(
     `${process.env.SERVER_URI!}/category`
   );
@@ -20,4 +20,4 @@ const HomePage = async () => {
   );
 };
 
-export default HomePage;
+export default CategoryPage;
