@@ -3,34 +3,39 @@
 import { Trash } from "lucide-react";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import TrashBox from "./trash-box";
-import axios from "axios";
-import { User } from "@/types";
+import TrashBox from "./common/trash-box";
+import { dataTableType, User } from "@/types";
 import { useCallback, useEffect, useState } from "react";
-import { SERVER_URI } from "@/lib/utils";
-import Loading from "./loading";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
+import Loading from "./common/loading";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { toast } from "sonner";
 
-const TrashComponent = () => {
+const TrashComponent = ({ apiLink }: { apiLink: string }) => {
+  const user = useCurrentUser();
+
   const [isMounted, setIsMounted] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [data, setData] = useState<dataTableType>([]);
 
-  const getUsers = useCallback(async () => {
-    const { data: users, status } = await axios.get(
-      `${SERVER_URI}/users/archived`
+  const getTableData = useCallback(async () => {
+    if (!user) return toast.error("User not found!");
+
+    const { data, status } = await axiosBase(user.token).get(
+      `${SERVER_URI}/${apiLink}/archived`
     );
 
     setIsMounted(true);
 
-    if (status !== 200 || !users) {
+    if (status !== 200 || !data) {
       return;
     }
 
-    setUsers(users);
+    setData(data);
   }, []);
 
   useEffect(() => {
-    getUsers();
-  }, [getUsers]);
+    getTableData();
+  }, [getTableData]);
 
   if (!isMounted) return <Loading />;
 
@@ -43,7 +48,7 @@ const TrashComponent = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-72" side={"bottom"}>
-        <TrashBox users={users} />
+        <TrashBox data={data} apiLink={apiLink} />
       </PopoverContent>
     </Popover>
   );

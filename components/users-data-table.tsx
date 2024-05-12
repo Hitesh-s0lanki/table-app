@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { Category, Product, SubCategory, User } from "@/types";
-import ConfirmModal from "./confirm-model";
+import ConfirmModal from "./common/confirm-model";
 import { toast } from "sonner";
 import axios from "axios";
 import { SERVER_URI } from "@/lib/utils";
@@ -53,7 +53,7 @@ import { useEditCategoryModal } from "@/hooks/use-edit-category";
 import { useCreateCategoryModal } from "@/hooks/use-create-category";
 import Image from "next/image";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import TrashBox from "./trash-box";
+import TrashBox from "./common/trash-box";
 import TrashComponent from "./trash-component";
 
 export function UsersDataTable({ data }: { data: User[] }) {
@@ -268,7 +268,7 @@ export function UsersDataTable({ data }: { data: User[] }) {
         </Table>
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
-        <TrashComponent />
+        {/* <TrashComponent /> */}
         <div className="space-x-2">
           <Button
             variant="outline"

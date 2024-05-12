@@ -1,9 +1,10 @@
-import Editor from "@/components/editor";
-import ErrorPage from "@/components/error";
+import Editor from "@/components/common/editor";
+import ErrorPage from "@/components/common/error";
 import ProductDetails from "@/components/product-details";
 import { Separator } from "@/components/ui/separator";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
 import { Product } from "@/types";
-import axios from "axios";
 
 interface IParams {
   params: {
@@ -12,7 +13,11 @@ interface IParams {
 }
 
 const ProductIdPage = async ({ params }: IParams) => {
-  const { data: product, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found" />;
+
+  const { data: product, status } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI}/products/${params.productId}`
   );
 

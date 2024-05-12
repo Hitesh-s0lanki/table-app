@@ -1,10 +1,15 @@
-import ErrorPage from "@/components/error";
-import { ProductDataTable } from "@/components/product-data-table";
-import { Product } from "@/types";
-import axios from "axios";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { Product, TableType } from "@/types";
 
 const ProductsPage = async () => {
-  const { data: products, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found" />;
+
+  const { data: products, status } = await axiosBase(user?.token!).get(
     `${process.env.SERVER_URI}/products`
   );
 
@@ -13,10 +18,14 @@ const ProductsPage = async () => {
   }
 
   return (
-    <div className="h-full w-full p-20 flex flex-col gap-5">
-      <h1 className="text-black font-semibold text-xl">Products</h1>
-      <ProductDataTable data={products as Product[]} />
-    </div>
+    <DataTable
+      apiLink={"products/list"}
+      data={products as Product[]}
+      title="Products"
+      filterColumnName="name"
+      createHref="/products/create"
+      tableType={TableType.PRODUCT}
+    />
   );
 };
 

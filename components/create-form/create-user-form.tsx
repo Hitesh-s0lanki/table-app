@@ -16,59 +16,26 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { cn, SERVER_URI } from "@/lib/utils";
+import { axiosBase, cn } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Separator } from "./ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Separator } from "../ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
-import axios from "axios";
+import { Calendar } from "../ui/calendar";
 import { toast } from "sonner";
+import ErrorPage from "../common/error";
+import { User } from "next-auth";
+import { createUserFormSchema } from "@/schemas";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { AxiosError } from "axios";
 
-const formSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, { message: "First name cannot be empty" })
-    .regex(
-      /^[a-zA-Z][a-zA-Z0-9]*$/,
-      "Username should only include alphanumeric characters and should not start with a digit."
-    ),
-  lastName: z
-    .string()
-    .min(1, { message: "Last name cannot be empty" })
-    .regex(
-      /^[a-zA-Z][a-zA-Z0-9]*$/,
-      "Username should only include alphanumeric characters and should not start with a digit."
-    ),
-  middleName: z
-    .string()
-    .regex(
-      /^[a-zA-Z][a-zA-Z0-9]*$/,
-      "Username should only include alphanumeric characters and should not start with a digit."
-    ),
-  UserName: z
-    .string()
-    .regex(
-      /^[a-zA-Z][a-zA-Z0-9]*$/,
-      "Username should only include alphanumeric characters and should not start with a digit."
-    ),
-  email: z.string().email("Invalid email format"),
-  contact: z.string().min(1, { message: "Contact number is neccesary" }),
-  dob: z.date().optional(),
-  city: z.string().min(1, { message: "City cannot be empty" }),
-  landMark: z.string().min(1, { message: "Landmark cannot be empty" }),
-  State: z.string().min(1, { message: "State cannot be empty" }),
-  Country: z.string().min(1, { message: "Country cannot be empty" }),
-  Pincode: z.string(),
-});
-
-const UserForm = () => {
+const UserForm = ({ isAdmin, user }: { isAdmin?: boolean; user?: User }) => {
   const router = useRouter();
+  const formSchema = createUserFormSchema(isAdmin);
 
+  const currentUser = useCurrentUser();
   const [loading, setLoading] = useState(false);
-
-  const [tagsValue, setTagsValue] = useState([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,21 +45,52 @@ const UserForm = () => {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setLoading(true);
 
-    const promise = axios
-      .post(`${SERVER_URI}/users`, values)
-      .then(() => {
-        router.replace("/users");
-        form.reset();
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    let promise;
 
-    toast.promise(promise, {
-      loading: "adding the user...",
-      success: "added user successfully",
-      error: "Something went wrong in creating the user",
-    });
+    if (user) {
+      const token = (user as any).token;
+
+      promise = axiosBase(token)
+        .post(`/users/profile/${user.id}`, values)
+        .then(() => {
+          form.reset();
+          router.push("/category");
+        })
+        .catch((error) => console.log(error))
+        .finally(() => {
+          setLoading(false);
+        });
+
+      toast.promise(promise, {
+        loading: "adding the user...",
+        success: "added user successfully",
+        error: "Something went wrong in creating the user",
+      });
+    } else {
+      promise = axiosBase(currentUser?.token!)
+        .post(`/users/admin/profile`, values)
+        .then(() => {
+          form.reset();
+          router.push("/users");
+        })
+        .catch((error) => {
+          console.log(error);
+          if (error instanceof AxiosError) {
+            if (error.response) {
+              toast.error((error.response?.data as any).message.toString());
+            }
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+      toast.promise(promise, {
+        loading: "adding the user...",
+        success: "added user successfully",
+        error: "Something went wrong in creating the user",
+      });
+    }
   };
 
   return (
@@ -145,36 +143,40 @@ const UserForm = () => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="UserName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter the username" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email*</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter the username"
-                      {...field}
-                      type="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="UserName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email*</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter the username"
+                        {...field}
+                        type="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="contact"

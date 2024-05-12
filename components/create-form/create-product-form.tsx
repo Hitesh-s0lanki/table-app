@@ -14,53 +14,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { checkFileType, SERVER_URI, Tags } from "@/lib/utils";
+import { axiosBase, checkFileType, SERVER_URI, Tags } from "@/lib/utils";
 import { SubCategory } from "@/types";
-import NpmSelect from "./NpmSelect";
+import NpmSelect from "../common/NpmSelect";
 import { useState } from "react";
-import Select from "./Select";
-import { SingleImageDropzone } from "./SingleImageDropzone";
-import { MultiImageDropzone, type FileState } from "./MultiImageDropzone";
-import Editor from "./editor";
+import Select from "../common/Select";
+import { SingleImageDropzone } from "../common/SingleImageDropzone";
+import {
+  MultiImageDropzone,
+  type FileState,
+} from "../common/MultiImageDropzone";
+import Editor from "../common/editor";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-const ACCEPTED_IMAGE_TYPES = ["png", "jpeg", "jpg", "gif"];
-const MAX_FILE_SIZE = 4;
-
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "name must be at least 2 characters.",
-  }),
-  price: z.string().min(2, {
-    message: "Price must be mention",
-  }),
-  description: z.string().min(2, {
-    message: "Description must be at least 2 characters.",
-  }),
-  category: z.string().min(2, {
-    message: "Category must be selected.",
-  }),
-  Tags: z.array(z.string()).min(1, {
-    message: "Tag must be selected.",
-  }),
-  bannnerImage: z
-    .instanceof(File, { message: "Banner Image is required!" })
-    .refine(
-      (file) => checkFileType(file),
-      "Only .png, .jpeg, .jpg, .gif formats are supported."
-    ),
-  images: z
-    .array(z.instanceof(File))
-    .refine(
-      (files) => files.map((file) => checkFileType(file)),
-      "Only .png, .jpeg, .jpg, .gif formats are supported."
-    ),
-});
+import { createProductFormSchema } from "@/schemas";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
   const router = useRouter();
+
+  const user = useCurrentUser();
+
+  const formSchema = createProductFormSchema;
 
   const [file, setFile] = useState<File>();
   const [loading, setLoading] = useState(false);
@@ -78,6 +54,8 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!user) return toast.error("User not found!");
+
     setLoading(true);
 
     const formdata = new FormData();
@@ -100,7 +78,7 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
 
     formdata.append("bannerImage", values.bannnerImage);
 
-    const promise = axios
+    const promise = axiosBase(user.token)
       .post(`${SERVER_URI}/products/${values.category}`, formdata)
       .then(() => {
         form.reset();

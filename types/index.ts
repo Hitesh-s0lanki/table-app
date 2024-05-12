@@ -1,3 +1,5 @@
+import { ColumnDef } from "@tanstack/react-table";
+
 export type Category = {
     id: string;
     name: string;
@@ -25,6 +27,8 @@ export type Product = {
     bannerImage: string;
     images: string[];
     Subcategory: SubCategory
+
+    isArchived?: boolean;
 }
 
 export type Project = {
@@ -44,7 +48,7 @@ export enum Status {
 export type Task = {
     id: string;
     title: string;
-    status: Status;
+    status: string;
 
     members: User[]
 
@@ -53,11 +57,40 @@ export type Task = {
 
 export type User = {
     id: string;
+
+    UserName: string;
+    email: string;
+    image?: string;
+    role: "USER" | "ADMIN"
+
+    emailVerified: Date
+
+    password?: string;
+    profile?: Profile;
+
+    token: string;
+
+    tasks: Task[]
+
+
+    isArchive: boolean
+}
+
+export enum UserRole {
+    "ADMIN",
+    "USER"
+}
+
+
+
+
+export type Profile = {
+
+    id: string;
     firstName: string;
     lastName: string;
     middleName: string;
-    UserName: string;
-    email: string;
+
     contact: string;
     dob?: Date;
     city: string;
@@ -65,6 +98,24 @@ export type User = {
     State: string;
     Country: string;
     Pincode: string;
-
-    tasks: Task[]
 }
+
+
+export type dataTableType = Product[] | Category[] | SubCategory[] | User[] | Project[] | Task[]
+export type dataTableColumnType = Category | Project | SubCategory | User | Project | Task
+
+export type columnsType = ColumnDef<Category>[]
+    | ColumnDef<SubCategory>[]
+    | ColumnDef<Product>[]
+    | ColumnDef<Project>[]
+    | ColumnDef<Task>[]
+    | ColumnDef<User>[]
+
+export enum TableType {
+    CATEGORY,
+    SUBCATEGORY,
+    PRODUCT,
+    PROJECT,
+    TASK,
+    USER
+} 

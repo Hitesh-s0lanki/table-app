@@ -1,10 +1,15 @@
-import ErrorPage from "@/components/error";
-import { ProjectsDataTable } from "@/components/projects-data-table";
-import { Project } from "@/types";
-import axios from "axios";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { Project, TableType } from "@/types";
 
 const ProjectsPage = async () => {
-  const { data: projects, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found!" />;
+
+  const { data: projects, status } = await axiosBase(user?.token).get(
     `${process.env.SERVER_URI}/projects`
   );
 
@@ -13,10 +18,14 @@ const ProjectsPage = async () => {
   }
 
   return (
-    <div className="h-full w-full p-20 flex flex-col gap-5">
-      <h1 className="text-black font-semibold text-xl">Projects</h1>
-      <ProjectsDataTable data={projects as Project[]} />
-    </div>
+    <DataTable
+      apiLink={"projects/list"}
+      data={projects as Project[]}
+      title="Projects"
+      filterColumnName="name"
+      createHref="/projects/create"
+      tableType={TableType.PROJECT}
+    />
   );
 };
 

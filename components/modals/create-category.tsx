@@ -23,20 +23,17 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
-import axios from "axios";
-import { SERVER_URI } from "@/lib/utils";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-
-const formSchema = z.object({
-  name: z.string().min(2).max(20),
-  description: z.string().min(1, {
-    message: "description must be provided...",
-  }),
-});
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { createCategoryFormSchema } from "@/schemas";
 
 const CreateCategoryModel = () => {
   const router = useRouter();
+  const user = useCurrentUser();
   const { isOpen, onClose } = useCreateCategoryModal();
+
+  const formSchema = createCategoryFormSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,7 +44,9 @@ const CreateCategoryModel = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const promise = axios
+    if (!user) return toast.error("User not found!");
+
+    const promise = axiosBase(user.token)
       .post(`${SERVER_URI}/category`, values)
       .then(() => {
         form.reset();

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import UserSelect from "./Select";
+import UserSelect from "../common/Select";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,28 +25,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import NpmSelect from "./NpmSelect";
+import NpmSelect from "../common/NpmSelect";
 import Image from "next/image";
 import axios from "axios";
-import { SERVER_URI } from "@/lib/utils";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-const formSchema = z.object({
-  title: z.string().min(2, { message: "Title is required." }),
-  members: z
-    .array(
-      z.object({
-        value: z.string(),
-        label: z.string(),
-      })
-    )
-    .min(1, { message: "I user is require for the task" }),
-  project: z.string().min(3, { message: "Project is required" }),
-  status: z.string({
-    required_error: "Please select an status to display.",
-  }),
-});
+import { createTaskformSchema } from "@/schemas";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const TasksForm = ({
   projects,
@@ -55,18 +41,21 @@ const TasksForm = ({
   projects: Project[];
   users: User[];
 }) => {
+  const user = useCurrentUser();
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const formSchema = createTaskformSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!user) return toast.error("User not Found!");
     setLoading(true);
 
-    const promise = axios
+    const promise = axiosBase(user.token)
       .post(`${SERVER_URI}/tasks/${values.project}`, {
         ...values,
         members: values.members.map((member) => member.value),

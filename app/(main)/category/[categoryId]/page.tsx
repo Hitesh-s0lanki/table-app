@@ -1,7 +1,8 @@
-import ErrorPage from "@/components/error";
-import { SubCategoryDataTable } from "@/components/subcategory-data-table";
-import { Category } from "@/types";
-import axios from "axios";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { Category, TableType } from "@/types";
 
 interface IParams {
   params: {
@@ -10,7 +11,9 @@ interface IParams {
 }
 
 const CategoryIdPage = async ({ params }: IParams) => {
-  const { data: category, status } = await axios.get(
+  const user = await currentUser();
+
+  const { data: category, status } = await axiosBase(user?.token!).get(
     `${process.env.SERVER_URI}/category/${params.categoryId}`
   );
 
@@ -19,15 +22,15 @@ const CategoryIdPage = async ({ params }: IParams) => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col gap-5 justify-center p-10">
-      <h1 className=" text-lg font-semibold">
-        {(category as Category).name} Category
-      </h1>
-      <SubCategoryDataTable
-        data={(category as Category).subcategories || []}
-        isCategory={category as Category}
-      />
-    </div>
+    <DataTable
+      apiLink={"subcategory/list"}
+      model={category as Category}
+      data={(category as Category).subcategories || []}
+      title={(category as Category).name}
+      filterColumnName="name"
+      createHref="/subcategory/create"
+      tableType={TableType.SUBCATEGORY}
+    />
   );
 };
 

@@ -1,4 +1,4 @@
-import ErrorPage from "@/components/error";
+import ErrorPage from "@/components/common/error";
 import UserDetails from "@/components/user-details";
 import { User } from "@/types";
 import axios from "axios";

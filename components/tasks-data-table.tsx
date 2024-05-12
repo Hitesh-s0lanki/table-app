@@ -16,6 +16,7 @@ import {
 import {
   ArrowUpDown,
   CassetteTape,
+  ChefHatIcon,
   ChevronDown,
   Edit,
   MoreHorizontal,
@@ -43,15 +44,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
-import { Product, Project, Task, User } from "@/types";
-import ConfirmModal from "./confirm-model";
+import { Product, Project, Status, Task, User } from "@/types";
+import ConfirmModal from "./common/confirm-model";
 import { toast } from "sonner";
 import axios from "axios";
 import { SERVER_URI } from "@/lib/utils";
-import ProfileImage from "./profile-image";
+import ProfileImage from "./common/profile-image";
+import { useEditTaskModal } from "@/hooks/use-edit-tasks";
 
 export function TasksDataTable({ data }: { data: Task[] }) {
   const router = useRouter();
+  const { onOpen: handleEdit } = useEditTaskModal();
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -106,7 +109,7 @@ export function TasksDataTable({ data }: { data: Task[] }) {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const product = row.original;
+        const task = row.original;
 
         return (
           <DropdownMenu>
@@ -119,16 +122,20 @@ export function TasksDataTable({ data }: { data: Task[] }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => router.push(`/projects/${product.project.id}`)}
+                onClick={() => router.push(`/projects/${task.project.id}`)}
               >
                 <CassetteTape className="h-4 w-4 mr-2" />
                 show project
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(task)}>
+                <ChefHatIcon className="h-4 w-4 mr-2" />
+                change Status
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <ConfirmModal
                 onConfirm={() => {
                   const promise = axios
-                    .delete(`${SERVER_URI}/tasks/${product.id}`)
+                    .delete(`${SERVER_URI}/tasks/${task.id}`)
                     .then(() => router.refresh());
                   toast.promise(promise, {
                     loading: "Deleting the modal",

@@ -1,10 +1,15 @@
-import ErrorPage from "@/components/error";
-import { SubCategoryDataTable } from "@/components/subcategory-data-table";
-import { SubCategory } from "@/types";
-import axios from "axios";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { SubCategory, TableType } from "@/types";
 
 const SubCategoryPage = async () => {
-  const { data, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not logged in" />;
+
+  const { data, status } = await axiosBase(user?.token!).get(
     `${process.env.SERVER_URI!}/subcategory`
   );
 
@@ -13,10 +18,14 @@ const SubCategoryPage = async () => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col justify-center gap-5 overflow-auto p-10">
-      <h1 className=" text-lg font-semibold ">SubCategories</h1>
-      <SubCategoryDataTable data={data as SubCategory[]} />
-    </div>
+    <DataTable
+      apiLink={"subcategory/list"}
+      data={data as SubCategory[]}
+      title="SubCategories"
+      filterColumnName="name"
+      createHref="/subcategory/create"
+      tableType={TableType.SUBCATEGORY}
+    />
   );
 };
 

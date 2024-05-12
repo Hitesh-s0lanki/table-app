@@ -23,23 +23,20 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useEditCategoryModal } from "@/hooks/use-edit-category";
-import ErrorPage from "../error";
+import ErrorPage from "../common/error";
 import axios from "axios";
-import { SERVER_URI } from "@/lib/utils";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-
-const formSchema = z.object({
-  name: z.string().min(2).max(20),
-  description: z.string().min(1, {
-    message: "description must be provided...",
-  }),
-});
+import { editCategoryFormSchema } from "@/schemas";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const EditCategoryModal = () => {
   const router = useRouter();
+  const user = useCurrentUser();
 
   const { isOpen, onClose, category } = useEditCategoryModal();
+  const formSchema = editCategoryFormSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,6 +47,8 @@ const EditCategoryModal = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!user) return toast.error("User not found!");
+
     const { name, description } = values;
 
     const data: any = {};
@@ -64,7 +63,7 @@ const EditCategoryModal = () => {
     }
 
     if (data) {
-      const promise = axios
+      const promise = axiosBase(user.token)
         .patch(`${SERVER_URI}/category/${category.id}`, data)
         .then(() => {
           router.refresh();

@@ -1,14 +1,20 @@
-import TasksForm from "@/components/create-tasks-form";
-import ErrorPage from "@/components/error";
+import TasksForm from "@/components/create-form/create-tasks-form";
+import ErrorPage from "@/components/common/error";
 import { Project, User } from "@/types";
 import axios from "axios";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
 
 const CreateTaskPage = async () => {
-  const { data: projects, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found!" />;
+
+  const { data: projects, status } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI!}/projects`
   );
 
-  const { data: users, status: usersStatus } = await axios.get(
+  const { data: users, status: usersStatus } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI!}/users`
   );
 

@@ -1,5 +1,13 @@
+import axios from "axios";
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+
+export const axiosBase = (accesstoken: string) => axios.create({
+  baseURL: 'http://localhost:4000',
+  headers: {
+    accesstoken
+  }
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

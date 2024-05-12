@@ -23,33 +23,30 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
-import NpmSelect from "../NpmSelect";
+import NpmSelect from "../common/NpmSelect";
 import { useCreateSubCategoryModal } from "@/hooks/use-create-subcategory";
 import { Category } from "@/types";
 import axios from "axios";
-import { SERVER_URI } from "@/lib/utils";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-
-const formSchema = z.object({
-  id: z.string().min(2, {
-    message: "Id is require",
-  }),
-  name: z.string().min(2).max(20),
-  description: z.string().min(1, {
-    message: "description must be provided...",
-  }),
-});
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { createSubCategoryFormSchema } from "@/schemas";
 
 const CreateSubCategorieModel = () => {
   const router = useRouter();
   const { isOpen, onClose, id } = useCreateSubCategoryModal();
+
+  const user = useCurrentUser();
+  const formSchema = createSubCategoryFormSchema;
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
 
   const getCategoriesName = useCallback(async () => {
     try {
-      const { data: categories, status } = await axios.get(
+      if (!user) return;
+
+      const { data: categories, status } = await axiosBase(user?.token).get(
         `${SERVER_URI}/category`
       );
       if (status !== 200) {
@@ -71,9 +68,11 @@ const CreateSubCategorieModel = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!user) return toast.error("User not found!");
+
     const { name, description } = values;
 
-    const promise = axios
+    const promise = axiosBase(user.token)
       .post(`${SERVER_URI}/subcategory/${values.id}`, {
         name,
         description,

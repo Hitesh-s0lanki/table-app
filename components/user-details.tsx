@@ -5,14 +5,15 @@ import { User } from "@/types";
 const UserDetails = ({ user }: { user: User }) => {
   return (
     <div className=" flex flex-col gap-5 w-full">
+      <p className=" text-muted-foreground text-md">Role : {user.role}</p>
       <p className=" text-muted-foreground text-md">
-        firstName : {user.firstName}
+        firstName : {user.profile?.firstName}
       </p>
       <p className=" text-muted-foreground text-md">
-        middleName : {user.middleName}
+        middleName : {user.profile?.middleName}
       </p>
       <p className=" text-muted-foreground text-md">
-        LastName : {user.lastName}
+        LastName : {user.profile?.lastName}
       </p>
 
       <div className=" flex flex-col gap-3">

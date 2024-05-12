@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { Category, Product, Project, SubCategory, Task, User } from "@/types";
-import ConfirmModal from "./confirm-model";
+import ConfirmModal from "./common/confirm-model";
 import { toast } from "sonner";
 import axios from "axios";
 import { SERVER_URI } from "@/lib/utils";
@@ -53,7 +53,7 @@ import { useEditCategoryModal } from "@/hooks/use-edit-category";
 import { useCreateCategoryModal } from "@/hooks/use-create-category";
 import Image from "next/image";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import TrashBox from "./trash-box";
+import TrashBox from "./common/trash-box";
 import TrashComponent from "./trash-component";
 
 export function ProjectsDataTable({ data }: { data: Project[] }) {

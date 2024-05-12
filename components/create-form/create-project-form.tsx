@@ -15,27 +15,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
-import { cn, SERVER_URI } from "@/lib/utils";
+import { axiosBase, cn, SERVER_URI } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Separator } from "./ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
-import axios from "axios";
+import { Separator } from "../ui/separator";
 import { toast } from "sonner";
-import Editor from "./editor";
-
-const formSchema = z.object({
-  name: z.string().min(3, { message: "Project name is required." }),
-  description: z.string().min(1, { message: "Description is required." }),
-});
+import Editor from "../common/editor";
+import { createProjectFormSchema } from "@/schemas";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const ProjectForm = () => {
   const router = useRouter();
 
+  const user = useCurrentUser();
   const [loading, setLoading] = useState(false);
+  const formSchema = createProjectFormSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,7 +39,9 @@ const ProjectForm = () => {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setLoading(true);
 
-    const promise = axios
+    if (!user) return toast.error("User not found!");
+
+    const promise = axiosBase(user?.token)
       .post(`${SERVER_URI}/projects`, values)
       .then(() => {
         router.replace("/projects");

@@ -1,10 +1,16 @@
-import ProductForm from "@/components/create-product-form";
-import ErrorPage from "@/components/error";
+import ProductForm from "@/components/create-form/create-product-form";
+import ErrorPage from "@/components/common/error";
 import { SubCategory } from "@/types";
 import axios from "axios";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
 
 const CreatePage = async () => {
-  const { data: subcategory, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found" />;
+
+  const { data: subcategory, status } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI!}/subcategory`
   );
 

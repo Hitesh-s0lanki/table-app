@@ -1,9 +1,11 @@
-import Editor from "@/components/editor";
-import ErrorPage from "@/components/error";
+import Editor from "@/components/common/editor";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
 import { TasksDataTable } from "@/components/tasks-data-table";
 import { Separator } from "@/components/ui/separator";
-import { Project } from "@/types";
-import axios from "axios";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { Project, TableType } from "@/types";
 
 interface IParams {
   params: {
@@ -12,7 +14,11 @@ interface IParams {
 }
 
 const ProjectIdPage = async ({ params }: IParams) => {
-  const { data: project, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found!" />;
+
+  const { data: project, status } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI}/projects/${params.projectId}`
   );
 
@@ -32,7 +38,15 @@ const ProjectIdPage = async ({ params }: IParams) => {
         />
       </div>
       <Separator />
-      <TasksDataTable data={(project as Project).tasks} />
+      <DataTable
+        model={project as Project}
+        apiLink={"tasks/list"}
+        data={(project as Project).tasks}
+        title="Tasks"
+        filterColumnName="title"
+        createHref="/tasks/create"
+        tableType={TableType.TASK}
+      />
     </div>
   );
 };

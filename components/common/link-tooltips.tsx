@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { useCreateSubCategoryModal } from "@/hooks/use-create-subcategory";
 import { useCreateCategoryModal } from "@/hooks/use-create-category";
 

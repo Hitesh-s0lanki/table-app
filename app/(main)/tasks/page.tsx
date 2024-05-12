@@ -1,10 +1,15 @@
-import ErrorPage from "@/components/error";
-import { TasksDataTable } from "@/components/tasks-data-table";
-import { Task } from "@/types";
-import axios from "axios";
+import ErrorPage from "@/components/common/error";
+import { DataTable } from "@/components/data-table";
+import { currentUser } from "@/lib/auth";
+import { axiosBase } from "@/lib/utils";
+import { TableType, Task } from "@/types";
 
 const TasksPage = async () => {
-  const { data: tasks, status } = await axios.get(
+  const user = await currentUser();
+
+  if (!user) return <ErrorPage title="User not found!" />;
+
+  const { data: tasks, status } = await axiosBase(user.token).get(
     `${process.env.SERVER_URI}/tasks`
   );
 
@@ -13,10 +18,14 @@ const TasksPage = async () => {
   }
 
   return (
-    <div className="h-full w-full p-20 flex flex-col gap-5">
-      <h1 className="text-black font-semibold text-xl">Tasks</h1>
-      <TasksDataTable data={tasks as Task[]} />
-    </div>
+    <DataTable
+      apiLink={"tasks/list"}
+      data={tasks as Task[]}
+      title="Tasks"
+      filterColumnName="title"
+      createHref="/tasks/create"
+      tableType={TableType.TASK}
+    />
   );
 };
 
