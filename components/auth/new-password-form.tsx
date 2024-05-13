@@ -118,7 +118,7 @@ const NewPasswordForm = () => {
       }
       throw error;
     }
-  }, [token]);
+  }, [token, user, error, success]);
 
   useEffect(() => {
     onLoad();

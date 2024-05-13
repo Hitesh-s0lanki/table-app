@@ -33,7 +33,7 @@ const Hero = () => {
           className="bg-green-500 hover:bg-green-700 text-white font-semibold rounded inline-flex items-center"
         >
           <ArrowRight className="mr-2 h-4 w-4" />
-          <span>Let's Start</span>
+          <span>{"Let's Start"}</span>
         </Button>
       </div>
     </div>

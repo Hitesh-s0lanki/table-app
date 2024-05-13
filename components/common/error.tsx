@@ -21,7 +21,7 @@ const ErrorPage = ({ title }: { title: string }) => {
         </h1>
         <h1 className="text-xl font-bold text-gray-900 mb-2">{title}</h1>
         <p className="text-gray-600 mb-4">
-          We can't find the page you're looking for.
+          {"We can't find the page you're looking for."}
         </p>
         <Button variant="link" onClick={() => router.replace("/")}>
           Go Back to home

@@ -58,6 +58,7 @@ const NewVerificationForm = () => {
         await signIn("credentials", {
           email,
           password,
+          redirectTo: ONBOARDING_LOGIN_REDIRECT,
         });
       }
     } catch (error) {
@@ -73,7 +74,7 @@ const NewVerificationForm = () => {
       }
       throw error;
     }
-  }, [token]);
+  }, [token, user, error, success]);
 
   useEffect(() => {
     onSubmit();

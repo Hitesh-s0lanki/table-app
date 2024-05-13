@@ -31,7 +31,7 @@ const TrashComponent = ({ apiLink }: { apiLink: string }) => {
     }
 
     setData(data);
-  }, []);
+  }, [apiLink, user]);
 
   useEffect(() => {
     getTableData();

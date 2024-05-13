@@ -56,7 +56,7 @@ const CreateSubCategorieModel = () => {
     } catch (error) {
       toast.error("Something went wrong!");
     }
-  }, []);
+  }, [user]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

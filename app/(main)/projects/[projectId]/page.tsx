@@ -1,7 +1,6 @@
 import Editor from "@/components/common/editor";
 import ErrorPage from "@/components/common/error";
 import { DataTable } from "@/components/data-table";
-import { TasksDataTable } from "@/components/tasks-data-table";
 import { Separator } from "@/components/ui/separator";
 import { currentUser } from "@/lib/auth";
 import { axiosBase } from "@/lib/utils";
