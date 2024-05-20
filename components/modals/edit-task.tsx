@@ -39,12 +39,6 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { editTaskFormSchema } from "@/schemas";
 
-const marking = {
-  PENDING: "PENDING",
-  INPROGRESS: "INPROGRESS",
-  COMPLETE: "COMPLETE",
-};
-
 const EditTaskModal = () => {
   const router = useRouter();
   const user = useCurrentUser();
@@ -125,6 +119,7 @@ const EditTaskModal = () => {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="PENDING">PENDING</SelectItem>
+                          <SelectItem value="TODO">TODO</SelectItem>
                           <SelectItem value="INPROGRESS">INPROGRESS</SelectItem>
                           <SelectItem value="COMPLETE">COMPLETE</SelectItem>
                         </SelectContent>

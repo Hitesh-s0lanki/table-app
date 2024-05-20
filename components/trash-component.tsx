@@ -20,7 +20,7 @@ const TrashComponent = ({ apiLink }: { apiLink: string }) => {
   const getTableData = useCallback(async () => {
     if (!user) return toast.error("User not found!");
 
-    const { data, status } = await axiosBase(user.token).get(
+    const { data, status } = await axiosBase(user.token, user.role).get(
       `${SERVER_URI}/${apiLink}/archived`
     );
 

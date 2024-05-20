@@ -1,8 +1,7 @@
 import ErrorPage from "@/components/common/error";
 import { DataTable } from "@/components/data-table";
-import { currentUser } from "@/lib/auth";
-import { axiosBase } from "@/lib/utils";
-import { SubCategory, TableType } from "@/types";
+import { getSubCategoryById } from "@/hooks/use-function";
+import { Category, TableType } from "@/types";
 
 interface IParams {
   params: {
@@ -11,30 +10,28 @@ interface IParams {
 }
 
 const SubCategoryIdPage = async ({ params }: IParams) => {
-  const user = await currentUser();
-
-  if (!user) return <ErrorPage title="User not logged in" />;
-
-  const { data: subcategory, status } = await axiosBase(user?.token!).get(
-    `${process.env.SERVER_URI}/subcategory/${params.subcategoryId}`
+  const { message, subcategory } = await getSubCategoryById(
+    params.subcategoryId
   );
 
-  if (status !== 200 || !subcategory) {
-    return <ErrorPage title="Failed to fetch the SubCategory" />;
+  if (message) {
+    return <ErrorPage title={message} />;
   }
 
   return (
     <DataTable
       apiLink={"products/list"}
       data={
-        (subcategory as SubCategory).products.filter(
+        (subcategory as Category).products.filter(
           (e) => e.isArchived === false
         ) || []
       }
-      title={`${(subcategory as SubCategory).name} SubCategory`}
+      title={`SubCategory ${(subcategory as Category).name}`}
       filterColumnName="name"
       createHref="/products/create"
       tableType={TableType.PRODUCT}
+      description={(subcategory as Category).description}
+      history={(subcategory as Category).history}
     />
   );
 };

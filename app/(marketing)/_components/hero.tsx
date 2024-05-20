@@ -25,7 +25,7 @@ const Hero = () => {
         <Button
           onClick={() => {
             if (user) {
-              router.push("/category");
+              router.push("/dashboard");
             } else {
               onOpen("LOGIN");
             }

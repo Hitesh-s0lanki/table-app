@@ -14,24 +14,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { axiosBase, checkFileType, SERVER_URI, Tags } from "@/lib/utils";
-import { SubCategory } from "@/types";
+import { axiosBase, SERVER_URI, Tags } from "@/lib/utils";
 import NpmSelect from "../common/NpmSelect";
 import { useState } from "react";
-import Select from "../common/Select";
 import { SingleImageDropzone } from "../common/SingleImageDropzone";
 import {
   MultiImageDropzone,
   type FileState,
 } from "../common/MultiImageDropzone";
 import Editor from "../common/editor";
-import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createProductFormSchema } from "@/schemas";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import MultiCreatableSelect from "../multi-createable";
+import { Category } from "@/types";
 
-const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
+const ProductForm = ({ subcategory }: { subcategory: Category[] }) => {
   const router = useRouter();
 
   const user = useCurrentUser();
@@ -54,6 +53,7 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log(values);
     if (!user) return toast.error("User not found!");
 
     setLoading(true);
@@ -61,7 +61,8 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
     const formdata = new FormData();
 
     formdata.append("name", values.name);
-    formdata.append("price", values.price);
+    formdata.append("sellingPrice", values.sellingPrice);
+    formdata.append("actualPrice", values.actualPrice);
     formdata.append("description", values.description);
 
     for (let i in values) {
@@ -79,7 +80,7 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
     formdata.append("bannerImage", values.bannnerImage);
 
     const promise = axiosBase(user.token)
-      .post(`${SERVER_URI}/products/${values.category}`, formdata)
+      .post(`/products/${values.category}`, formdata)
       .then(() => {
         form.reset();
         router.replace("/products");
@@ -115,10 +116,29 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
 
           <FormField
             control={form.control}
-            name="price"
+            name="sellingPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price</FormLabel>
+                <FormLabel>Selling Price</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter the price of product"
+                    {...field}
+                    type="number"
+                    step="0.01"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="actualPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Actual Price</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter the price of product"
@@ -141,7 +161,7 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
                 <FormControl>
                   <NpmSelect
                     isLoading={loading}
-                    options={subcategory.map((subcategory: SubCategory) => ({
+                    options={subcategory.map((subcategory: Category) => ({
                       value: subcategory.id,
                       label: subcategory.name,
                     }))}
@@ -164,7 +184,7 @@ const ProductForm = ({ subcategory }: { subcategory: SubCategory[] }) => {
               <FormItem>
                 <FormLabel>Tags</FormLabel>
                 <FormControl>
-                  <Select
+                  <MultiCreatableSelect
                     disabled={loading}
                     options={Tags.map((tag) => ({
                       value: tag.name,

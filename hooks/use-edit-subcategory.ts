@@ -1,10 +1,10 @@
-import { SubCategory } from "@/types";
+import { Category } from "@/types";
 import { create } from "zustand";
 
 interface ModalStore {
-    subcategory?: SubCategory;
+    subcategory?: Category;
     isOpen: boolean;
-    onOpen: (subcategory: SubCategory) => void,
+    onOpen: (subcategory: Category) => void,
     onClose: () => void;
 }
 

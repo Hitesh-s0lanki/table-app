@@ -1,20 +1,13 @@
 import ErrorPage from "@/components/common/error";
 import { DataTable } from "@/components/data-table";
-import { currentUser } from "@/lib/auth";
-import { axiosBase } from "@/lib/utils";
+import { getTasks } from "@/hooks/use-function";
 import { TableType, Task } from "@/types";
 
 const TasksPage = async () => {
-  const user = await currentUser();
+  const { message, tasks } = await getTasks();
 
-  if (!user) return <ErrorPage title="User not found!" />;
-
-  const { data: tasks, status } = await axiosBase(user.token).get(
-    `${process.env.SERVER_URI}/tasks`
-  );
-
-  if (status !== 200 || !tasks) {
-    return <ErrorPage title="Failed to load the tasks!" />;
+  if (message) {
+    return <ErrorPage title={message} />;
   }
 
   return (

@@ -24,7 +24,6 @@ import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { useEditCategoryModal } from "@/hooks/use-edit-category";
 import ErrorPage from "../common/error";
-import axios from "axios";
 import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

@@ -1,20 +1,13 @@
 import ErrorPage from "@/components/common/error";
 import { DataTable } from "@/components/data-table";
-import { currentUser } from "@/lib/auth";
-import { axiosBase } from "@/lib/utils";
+import { getProducts } from "@/hooks/use-function";
 import { Product, TableType } from "@/types";
 
 const ProductsPage = async () => {
-  const user = await currentUser();
+  const { message, products } = await getProducts();
 
-  if (!user) return <ErrorPage title="User not found" />;
-
-  const { data: products, status } = await axiosBase(user?.token!).get(
-    `${process.env.SERVER_URI}/products`
-  );
-
-  if (status !== 200 || !products) {
-    return <ErrorPage title="Failed to load the products!" />;
+  if (message) {
+    return <ErrorPage title={message} />;
   }
 
   return (

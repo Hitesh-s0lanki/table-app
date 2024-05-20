@@ -8,27 +8,40 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { axiosBase, cn, SERVER_URI } from "@/lib/utils";
-import { useState } from "react";
+import { axiosBase, SERVER_URI } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Separator } from "../ui/separator";
 import { toast } from "sonner";
 import Editor from "../common/editor";
 import { createProjectFormSchema } from "@/schemas";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { Project, User } from "@/types";
+import MultiCreatableSelect from "../multi-createable";
+import NpmSelect from "../common/NpmSelect";
+import Select from "../common/Select";
+import { Separator } from "../ui/separator";
+import { format } from "url";
 
-const ProjectForm = () => {
+const ProjectForm = ({
+  users,
+  project,
+}: {
+  users: User[];
+  project?: Project;
+}) => {
   const router = useRouter();
 
   const user = useCurrentUser();
   const [loading, setLoading] = useState(false);
+  const [clientValue, setClientValue] = useState<any[]>([]);
+  const [technologyValue, setTechnologyValue] = useState<any[]>([]);
+  const [participants, setParticipants] = useState<any[]>([]);
   const formSchema = createProjectFormSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,10 +71,43 @@ const ProjectForm = () => {
     });
   };
 
+  useEffect(() => {
+    if (project) {
+      form.setValue("name", project.name);
+      form.setValue("description", project.description);
+      form.setValue("managerId", project.managerId);
+      form.setValue(
+        "participants",
+        project.participants.map((e) => e.id)
+      );
+      form.setValue("technology", project.technology);
+      form.setValue("client", project.client);
+
+      setClientValue(
+        project.client.map((e) => ({
+          value: e,
+          label: e,
+        })) || []
+      );
+      setTechnologyValue(
+        project.technology.map((e) => ({
+          value: e,
+          label: e,
+        })) || []
+      );
+      setParticipants(
+        project.participants.map((e) => ({
+          value: e.id,
+          label: e.UserName,
+        }))
+      );
+    }
+  }, [project]);
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 p-5">
-        <div className=" flex flex-col gap-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className=" grid grid-cols-2 gap-5">
           <FormField
             control={form.control}
             name="name"
@@ -69,31 +115,91 @@ const ProjectForm = () => {
               <FormItem>
                 <FormLabel>Project Name</FormLabel>
                 <FormControl>
-                  <Input
-                    className="w-1/2"
-                    placeholder="enter the name of project"
-                    {...field}
+                  <Input placeholder="enter the name of project" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="client"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Client</FormLabel>
+                <FormControl>
+                  <MultiCreatableSelect
+                    disabled={loading}
+                    options={clientValue.map((subcategory: any) => ({
+                      value: subcategory.id,
+                      label: subcategory.name,
+                    }))}
+                    onChange={(value: any) => {
+                      setClientValue(value);
+                      form.setValue(
+                        "client",
+                        value.map((e: any) => e.value),
+                        {
+                          shouldValidate: true,
+                        }
+                      );
+                    }}
+                    value={clientValue}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <h1 className=" text-black text-muted-foreground text-md font-semibold">
-            Define your project here.
-          </h1>
-          <Separator />
 
           <FormField
             control={form.control}
-            name="description"
+            name="technology"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>Technology</FormLabel>
                 <FormControl>
-                  <Editor
-                    onChange={(value: string) => {
-                      form.setValue("description", value);
+                  <MultiCreatableSelect
+                    disabled={loading}
+                    options={clientValue.map((subcategory: any) => ({
+                      value: subcategory.id,
+                      label: subcategory.name,
+                    }))}
+                    onChange={(value: any) => {
+                      setTechnologyValue(value);
+                      form.setValue(
+                        "technology",
+                        value.map((e: any) => e.value),
+                        {
+                          shouldValidate: true,
+                        }
+                      );
+                    }}
+                    value={technologyValue}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="managerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Manager</FormLabel>
+                <FormControl>
+                  <NpmSelect
+                    isLoading={loading}
+                    options={users.map((user: User) => ({
+                      value: user.id,
+                      label: user.UserName,
+                    }))}
+                    onChange={(value) => {
+                      form.setValue("managerId", value.value, {
+                        shouldValidate: true,
+                      });
                     }}
                   />
                 </FormControl>
@@ -101,9 +207,55 @@ const ProjectForm = () => {
               </FormItem>
             )}
           />
-        </div>
 
-        <div className=" w-full p-4 flex justify-center items-center pt-10">
+          <FormField
+            control={form.control}
+            name="participants"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Participants</FormLabel>
+                <FormControl>
+                  <Select
+                    disabled={loading}
+                    options={users.map((user) => ({
+                      value: user.id,
+                      label: user.UserName,
+                    }))}
+                    onChange={(value: any) => {
+                      setParticipants(value);
+                      form.setValue(
+                        "participants",
+                        value.map((e: any) => e.value)
+                      );
+                    }}
+                    value={participants}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Editor
+                  onChange={(value: string) => {
+                    form.setValue("description", value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Separator />
+        <div className=" w-full p-4 flex justify-center items-center">
           <Button type="submit" className="w-1/2" disabled={loading}>
             Add
           </Button>

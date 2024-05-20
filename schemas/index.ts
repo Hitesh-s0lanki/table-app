@@ -91,8 +91,11 @@ export const createProductFormSchema = z.object({
     name: z.string().min(2, {
         message: "name must be at least 2 characters.",
     }),
-    price: z.string().min(2, {
-        message: "Price must be mention",
+    sellingPrice: z.string().min(2, {
+        message: "Selling Price must be mention",
+    }),
+    actualPrice: z.string().min(2, {
+        message: "Actual Price must be mention",
     }),
     description: z.string().min(2, {
         message: "Description must be at least 2 characters.",
@@ -120,10 +123,17 @@ export const createProductFormSchema = z.object({
 export const createProjectFormSchema = z.object({
     name: z.string().min(3, { message: "Project name is required." }),
     description: z.string().min(1, { message: "Description is required." }),
+    managerId: z.string().min(1, { message: "Description is required." }),
+    client: z.array(z.string()),
+    technology: z.array(z.string()),
+    participants: z.array(z.string()),
 });
 
+
 export const createTaskformSchema = z.object({
-    title: z.string().min(2, { message: "Title is required." }),
+    name: z.string().min(2, { message: "Name is required." }),
+    description: z.string().min(2, { message: "Description is required." }),
+    ownerId: z.string().min(2, { message: "Description is required." }),
     members: z
         .array(
             z.object({
@@ -136,6 +146,8 @@ export const createTaskformSchema = z.object({
     status: z.string({
         required_error: "Please select an status to display.",
     }),
+    documents: z
+        .array(z.instanceof(File)).optional()
 });
 
 export const createCategoryFormSchema = z.object({
@@ -163,6 +175,7 @@ export const editCategoryFormSchema = z.object({
 });
 
 export const editSubCategoryFormSchema = z.object({
+    parentId: z.string().min(2, { message: "Select the Category" }),
     name: z.string().min(2).max(20),
     description: z.string().min(1, {
         message: "description must be provided...",

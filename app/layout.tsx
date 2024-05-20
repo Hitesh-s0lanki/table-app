@@ -21,16 +21,16 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <SessionProvider session={session}>
-      <html lang="en">
-        <body className={inter.className}>
-          <div className=" h-full w-full flex ">
+    <html lang="en">
+      <body className={inter.className}>
+        <SessionProvider session={session}>
+          <div className=" h-full w-full">
             <Toaster />
             <ModalProviders />
-            <main className=" h-full w-full overflow-auto">{children}</main>
+            <main className=" h-full w-full">{children}</main>
           </div>
-        </body>
-      </html>
-    </SessionProvider>
+        </SessionProvider>
+      </body>
+    </html>
   );
 }

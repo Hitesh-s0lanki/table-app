@@ -1,20 +1,13 @@
 import ErrorPage from "@/components/common/error";
 import { DataTable } from "@/components/data-table";
-import { currentUser } from "@/lib/auth";
-import { axiosBase } from "@/lib/utils";
+import { getProjects } from "@/hooks/use-function";
 import { Project, TableType } from "@/types";
 
 const ProjectsPage = async () => {
-  const user = await currentUser();
+  const { message, projects } = await getProjects();
 
-  if (!user) return <ErrorPage title="User not found!" />;
-
-  const { data: projects, status } = await axiosBase(user?.token).get(
-    `${process.env.SERVER_URI}/projects`
-  );
-
-  if (status !== 200 || !projects) {
-    return <ErrorPage title="Failed to load the projects!" />;
+  if (message) {
+    return <ErrorPage title={message} />;
   }
 
   return (

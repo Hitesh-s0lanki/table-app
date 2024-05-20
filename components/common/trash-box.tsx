@@ -45,8 +45,8 @@ const TrashBox = ({
     userId: string
   ) => {
     event.stopPropagation();
-    const promise = axiosBase(user?.token)
-      .patch(`${SERVER_URI}/${apiLink.split("/")[0]}/${userId}`, {
+    const promise = axiosBase(user?.token, user.role)
+      .patch(`/${apiLink.split("/")[0]}/${userId}`, {
         isArchived: false,
       })
       .then(() => router.refresh());
@@ -59,7 +59,7 @@ const TrashBox = ({
   };
 
   const onRemove = (userId: String) => {
-    const promise = axiosBase(user.token)
+    const promise = axiosBase(user.token, user.role)
       .delete(`${SERVER_URI}/${apiLink.split("/")[0]}/${userId}`)
       .then(() => router.refresh());
 

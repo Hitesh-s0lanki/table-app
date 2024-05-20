@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import authConfig from "@/auth.config"
 import axios from "axios"
-import { User, UserRole } from "./types"
+import { User } from "./types"
 
 export const {
     handlers: { GET, POST },
@@ -30,7 +30,7 @@ export const {
             }
 
             if (token.role && session.user) {
-                session.user.role = token.role as UserRole
+                session.user.role = token.role
             }
 
             if (session.user) {
@@ -45,20 +45,17 @@ export const {
 
             if (!token.sub) return token;
 
-            try {
-                const { data: existingUser, status } = await axios.get(`${process.env.SERVER_URI}/users/${token.sub}`)
+            const { data: existingUser, status } = await axios.get(`${process.env.SERVER_URI}/users/login/${token.sub}`)
 
-                if (!existingUser || status !== 200) return token
+            if (!existingUser || status !== 200) return token
 
-                token.name = (existingUser as User).UserName;
-                token.role = (existingUser as User).role;
-                token.profile = !!(existingUser as User).profile;
-                token.token = (existingUser as User).token;
+            token.name = (existingUser as User).UserName;
+            token.role = (existingUser as User).roleId;
+            token.profile = !!(existingUser as User).profile;
+            token.token = (existingUser as User).token;
 
-            } catch (error) {
-            } finally {
-                return token
-            }
+            return token
+
         },
     },
     session: { strategy: "jwt" },

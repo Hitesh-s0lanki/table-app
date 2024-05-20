@@ -46,9 +46,10 @@ const CreateSubCategorieModel = () => {
     try {
       if (!user) return;
 
-      const { data: categories, status } = await axiosBase(user?.token).get(
-        `${SERVER_URI}/category`
-      );
+      const { data: categories, status } = await axiosBase(
+        user?.token,
+        user.role
+      ).get(`${SERVER_URI}/category`);
       if (status !== 200) {
         throw new Error("Something went wrong in fetching the category names");
       }
@@ -133,7 +134,7 @@ const CreateSubCategorieModel = () => {
             {!id && (
               <div className="flex flex-col gap-1">
                 <FormLabel className=" text-md whitespace-normal">
-                  Categorie name
+                  Category
                 </FormLabel>
                 <div className="mx-2">
                   <NpmSelect

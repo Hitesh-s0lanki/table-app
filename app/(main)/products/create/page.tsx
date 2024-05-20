@@ -1,7 +1,6 @@
 import ProductForm from "@/components/create-form/create-product-form";
 import ErrorPage from "@/components/common/error";
-import { SubCategory } from "@/types";
-import axios from "axios";
+import { Category } from "@/types";
 import { currentUser } from "@/lib/auth";
 import { axiosBase } from "@/lib/utils";
 
@@ -23,7 +22,7 @@ const CreatePage = async () => {
       <h1 className=" text-black text-xl font-semibold w-full px-10">
         Create new Product.
       </h1>
-      <ProductForm subcategory={subcategory as SubCategory[]} />
+      <ProductForm subcategory={subcategory as Category[]} />
     </div>
   );
 };

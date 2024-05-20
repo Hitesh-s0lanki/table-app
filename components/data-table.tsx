@@ -37,6 +37,15 @@ import TrashComponent from "./trash-component";
 import { useCreateCategoryModal } from "@/hooks/use-create-category";
 import { useCreateSubCategoryModal } from "@/hooks/use-create-subcategory";
 import { Columns } from "./colums";
+import { DataTablePagination } from "./data-table-components/data-table-pagination";
+import { DataTableToolbar } from "./data-table-components/data-table-toolbar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 interface DataTableProps {
   model?: dataTableColumnType;
@@ -46,6 +55,8 @@ interface DataTableProps {
   createHref: string;
   apiLink: string;
   tableType: TableType;
+  description?: string;
+  history?: string[];
 }
 
 export function DataTable({
@@ -56,6 +67,8 @@ export function DataTable({
   apiLink,
   model,
   tableType,
+  description,
+  history,
 }: DataTableProps) {
   const router = useRouter();
   const { onOpen: handleCategoryCreate } = useCreateCategoryModal();
@@ -93,66 +106,21 @@ export function DataTable({
   return (
     <div className="h-full w-full flex flex-col gap-5 p-20">
       <h1 className=" text-xl font-semibold">{title}</h1>
-      <div className="w-full">
-        <div className="flex items-center py-4 justify-between md:flex-row lg:flex-row flex-col gap-5">
-          <Input
-            placeholder={`Filter ${filterColumnName}s...`}
-            value={
-              (table.getColumn(filterColumnName)?.getFilterValue() as string) ??
-              ""
+      <div className="w-full space-y-4">
+        <DataTableToolbar
+          table={table}
+          tableType={tableType}
+          filterColumnName={filterColumnName}
+          onClick={() => {
+            if (createHref === "/subcategory/create") {
+              handleSubCategoryCreate();
+            } else if (createHref === "/category/create") {
+              handleCategoryCreate();
+            } else {
+              router.push(createHref);
             }
-            onChange={(event) =>
-              table
-                .getColumn(filterColumnName)
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <div className="space-x-2 flex items-center justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              onClick={() => {
-                if (createHref === "/subcategory/create") {
-                  handleSubCategoryCreate();
-                } else if (createHref === "/category/create") {
-                  handleCategoryCreate();
-                } else {
-                  router.push(createHref);
-                }
-              }}
-              className="flex flex-row gap-2 items-center justify-center"
-              variant="outline"
-            >
-              <PlusCircle className="h-4 w-4 shrink-0" />
-              Create new
-            </Button>
-          </div>
-        </div>
+          }}
+        />
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -203,27 +171,38 @@ export function DataTable({
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-between space-x-2 py-4">
-          <TrashComponent apiLink={apiLink} />
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <DataTablePagination table={table} />
+        <TrashComponent apiLink={apiLink} />
+        {description && (
+          <Card className="p-2">
+            <CardHeader className="p-3">
+              <CardTitle className="text-md">Description</CardTitle>
+              <CardDescription className="text-sm">
+                {description}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {history && (
+          <Card>
+            <CardHeader>
+              <CardTitle>History</CardTitle>
+              <CardDescription>
+                last five update history of Category
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="ml-2 space-y-2">
+                {history.slice(-5).map((his, index) => (
+                  <p className="text-sm font-normal">
+                    {index + 1}. {his}
+                  </p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

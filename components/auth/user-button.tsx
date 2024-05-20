@@ -12,6 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ImExit } from "react-icons/im";
+import ProfileImage from "../common/profile-image";
 
 export const UserButton = () => {
   const user = useCurrentUser();
@@ -22,7 +23,7 @@ export const UserButton = () => {
         <Avatar>
           <AvatarImage src={user?.image || ""} />
           <AvatarFallback className="bg-sky-500">
-            <FaUser className="text-white" />
+            <ProfileImage name={user?.name || ""} />
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

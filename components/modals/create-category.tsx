@@ -47,7 +47,7 @@ const CreateCategoryModel = () => {
     if (!user) return toast.error("User not found!");
 
     const promise = axiosBase(user.token)
-      .post(`${SERVER_URI}/category`, values)
+      .post(`/category`, values)
       .then(() => {
         form.reset();
         router.refresh();

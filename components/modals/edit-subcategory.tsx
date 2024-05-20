@@ -22,19 +22,30 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
-import { useEditCategoryModal } from "@/hooks/use-edit-category";
-import ErrorPage from "../common/error";
-import axios from "axios";
 import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useEditSubCategoryModal } from "@/hooks/use-edit-subcategory";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { editSubCategoryFormSchema } from "@/schemas";
+import NpmSelect from "../common/NpmSelect";
+import { Category } from "@/types";
 
 const EditSubCategoryModal = () => {
   const router = useRouter();
   const user = useCurrentUser();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [category, setCategory] = useState<Category[]>([]);
+
+  const getAllCategory = useCallback(async () => {
+    if (user) {
+      const { data: category } = await axiosBase(user!.token, user.role).get(
+        "/category"
+      );
+      setCategory(category);
+    }
+  }, []);
 
   const { isOpen, onClose, subcategory } = useEditSubCategoryModal();
   const formSchema = editSubCategoryFormSchema;
@@ -42,14 +53,17 @@ const EditSubCategoryModal = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      parentId: subcategory?.id,
+      name: subcategory?.name,
+      description: subcategory?.description ?? "",
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+
     if (!user) return toast.error("User not found!");
-    const { name, description } = values;
+    const { name, description, parentId } = values;
 
     const data: any = {};
 
@@ -61,6 +75,9 @@ const EditSubCategoryModal = () => {
     if (description !== subcategory?.description) {
       data.description = description;
     }
+    if (parentId !== subcategory?.parent?.id) {
+      data.parentId = parentId;
+    }
 
     if (data) {
       const promise = axiosBase(user.token)
@@ -69,7 +86,10 @@ const EditSubCategoryModal = () => {
           router.refresh();
           form.reset();
         })
-        .finally(() => onClose());
+        .finally(() => {
+          setIsLoading(false);
+          onClose();
+        });
 
       toast.promise(promise, {
         loading: "Editing a Category...",
@@ -83,11 +103,15 @@ const EditSubCategoryModal = () => {
   };
 
   useEffect(() => {
+    getAllCategory();
     if (subcategory) {
+      form.setValue("parentId", subcategory.parent!.id);
       form.setValue("name", subcategory.name);
       form.setValue("description", subcategory.description);
     }
-  }, [subcategory, form]);
+  }, [getAllCategory, form, subcategory, user]);
+
+  if (!subcategory || !user) return;
 
   return (
     <Dialog
@@ -98,66 +122,80 @@ const EditSubCategoryModal = () => {
       }}
     >
       <DialogContent>
-        {subcategory ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit SubCategory</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
-              >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter the name of categorie"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This is your public display name.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+        <DialogHeader>
+          <DialogTitle>Edit SubCategory</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter the name of categorie"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This is your public display name.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex flex-col gap-1">
+              <FormLabel className=" text-md whitespace-normal">
+                Category
+              </FormLabel>
+              <div className="mx-2">
+                <NpmSelect
+                  isLoading={isLoading}
+                  options={category.map((category: Category) => ({
+                    value: category.id,
+                    label: category.name,
+                  }))}
+                  onChange={(value) => {
+                    form.setValue("parentId", value.value, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  defaultValue={{
+                    value: subcategory.parent!.id,
+                    label: subcategory.parent!.name,
+                  }}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter the categorie description"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className=" w-full ">
-                  <Button type="submit" className=" w-full">
-                    Submit
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </>
-        ) : (
-          <ErrorPage title="Category not provided!" />
-        )}
+              </div>
+            </div>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter the categorie description"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className=" w-full ">
+              <Button disabled={isLoading} type="submit" className=" w-full">
+                Submit
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -3,11 +3,8 @@
 import { cn } from "@/lib/utils";
 import {
   CassetteTape,
-  Code,
-  ImageIcon,
   LayoutDashboard,
   List,
-  MessageSquare,
   PersonStandingIcon,
   ShieldQuestionIcon,
   ShoppingCartIcon,
@@ -18,10 +15,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LinkTooltips from "./common/link-tooltips";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { UserRole } from "@/types";
 import Image from "next/image";
-import { ImProfile } from "react-icons/im";
 import { signOut } from "next-auth/react";
+import { FaCriticalRole, FaDashcube } from "react-icons/fa";
+import { Role } from "@/types";
 
 const montserrat = Montserrat({
   weight: "600",
@@ -30,30 +27,31 @@ const montserrat = Montserrat({
 
 const routes = [
   {
-    label: "Categories",
+    id: "category",
+    label: "Category",
     icon: LayoutDashboard,
     href: "/category",
     color: "text-sky-500",
     create_href: "/category/create",
   },
   {
-    label: "SubCategories",
+    id: "subcategory",
+    label: "SubCategory",
     icon: CassetteTape,
     href: "/subcategory",
     color: "text-violet-500",
     create_href: "/subcategory/create",
   },
   {
+    id: "products",
     label: "Products",
     icon: ShoppingCartIcon,
     href: "/products",
     color: "text-pink-700",
     create_href: "/products/create",
   },
-];
-
-const AdminRoute = [
   {
+    id: "projects",
     label: "Projects",
     icon: ShieldQuestionIcon,
     href: "/projects",
@@ -61,6 +59,7 @@ const AdminRoute = [
     create_href: "/projects/create",
   },
   {
+    id: "user",
     label: "Users",
     icon: PersonStandingIcon,
     href: "/users",
@@ -68,15 +67,33 @@ const AdminRoute = [
     create_href: "/users/create",
   },
   {
+    id: "tasks",
     label: "Tasks",
     icon: List,
     href: "/tasks",
     color: "text-green-700",
     create_href: "/tasks/create",
   },
+  {
+    id: "roles",
+    label: "Roles",
+    icon: FaCriticalRole,
+    href: "/roles",
+    color: "text-blue-700",
+    create_href: "/roles/create",
+  },
 ];
 
-const Sidebar = () => {
+type modelType =
+  | "products"
+  | "category"
+  | "subcategory"
+  | "projects"
+  | "tasks"
+  | "user"
+  | "roles";
+
+const Sidebar = ({ role }: { role: Role }) => {
   const pathname = usePathname();
 
   const user = useCurrentUser();
@@ -84,12 +101,26 @@ const Sidebar = () => {
   return (
     <div className="hidden space-y-4 py-4 w-60 md:flex md:flex-col lg:flex lg:flex-col h-full bg-[#111827] text-white justify-between ">
       <div className="px-3 py-2 flex-1">
-        <Link href="/dashboard" className="flex items-center pl-3 mb-14">
+        <Link href="/" className="flex items-center pl-3 mb-14">
           <h1 className={cn("text-2xl font-bold", montserrat.className)}>
             Tables
           </h1>
         </Link>
         <div className="space-y-1">
+          <Link
+            href={"/dashboard"}
+            className={cn(
+              "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
+              pathname === "/dashboard"
+                ? "text-white bg-white/10"
+                : "text-zinc-400"
+            )}
+          >
+            <div className="flex items-center flex-1">
+              <FaDashcube className={cn("h-5 w-5 mr-3 via-violet-600")} />
+              Dashboard
+            </div>
+          </Link>
           {routes.map((route) => (
             <LinkTooltips
               key={route.href}
@@ -113,31 +144,6 @@ const Sidebar = () => {
               </Link>
             </LinkTooltips>
           ))}
-
-          {user?.role.toString() === "ADMIN" &&
-            AdminRoute.map((route) => (
-              <LinkTooltips
-                key={route.href}
-                list_href={route.href}
-                create_href={route.create_href}
-              >
-                <Link
-                  href={route.href}
-                  key={route.href}
-                  className={cn(
-                    "text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition",
-                    pathname === route.href
-                      ? "text-white bg-white/10"
-                      : "text-zinc-400"
-                  )}
-                >
-                  <div className="flex items-center flex-1">
-                    <route.icon className={cn("h-5 w-5 mr-3", route.color)} />
-                    {route.label}
-                  </div>
-                </Link>
-              </LinkTooltips>
-            ))}
 
           <Link
             href={`/users/${user?.id}`}

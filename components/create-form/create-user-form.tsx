@@ -24,7 +24,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "../ui/calendar";
 import { toast } from "sonner";
-import ErrorPage from "../common/error";
 import { User } from "next-auth";
 import { createUserFormSchema } from "@/schemas";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -42,54 +41,36 @@ const UserForm = ({ isAdmin, user }: { isAdmin?: boolean; user?: User }) => {
     defaultValues: {},
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
 
-    let promise;
+    try {
+      let redirectUrl = "/";
 
-    if (user) {
-      const token = (user as any).token;
+      if (user) {
+        const token = (user as any).token;
 
-      promise = axiosBase(token)
-        .post(`/users/profile/${user.id}`, values)
-        .then(() => {
-          form.reset();
-          router.push("/category");
-        })
-        .catch((error) => console.log(error))
-        .finally(() => {
-          setLoading(false);
-        });
-
-      toast.promise(promise, {
-        loading: "adding the user...",
-        success: "added user successfully",
-        error: "Something went wrong in creating the user",
-      });
-    } else {
-      promise = axiosBase(currentUser?.token!)
-        .post(`/users/admin/profile`, values)
-        .then(() => {
-          form.reset();
-          router.push("/users");
-        })
-        .catch((error) => {
-          console.log(error);
-          if (error instanceof AxiosError) {
-            if (error.response) {
-              toast.error((error.response?.data as any).message.toString());
-            }
-          }
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-
-      toast.promise(promise, {
-        loading: "adding the user...",
-        success: "added user successfully",
-        error: "Something went wrong in creating the user",
-      });
+        await axiosBase(token).post(`/users/profile/${user.id}`, values);
+      } else {
+        await axiosBase(currentUser?.token!).post(
+          `/users/admin/profile`,
+          values
+        );
+        redirectUrl = "/users";
+      }
+      toast.success("User Profile Created Successfully");
+      router.replace(redirectUrl);
+    } catch (error) {
+      toast.error("Something went wrong in creating the user profile");
+      console.log(error);
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          toast.error((error.response?.data as any).message.toString());
+        }
+      }
+    } finally {
+      form.reset();
+      setLoading(false);
     }
   };
 
