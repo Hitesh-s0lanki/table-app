@@ -7,6 +7,7 @@ import EditCategoryModal from "../modals/edit-category";
 import EditSubCategoryModal from "../modals/edit-subcategory";
 import EditTaskModal from "../modals/edit-task";
 import AuthModel from "../modals/auth-model";
+import EditUserRoleModal from "../modals/edit-user-role";
 
 const ModalProviders = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -25,6 +26,7 @@ const ModalProviders = () => {
       <EditCategoryModal />
       <EditSubCategoryModal />
       <EditTaskModal />
+      <EditUserRoleModal />
     </>
   );
 };

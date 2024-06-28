@@ -46,7 +46,7 @@ const CreateCategoryModel = () => {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!user) return toast.error("User not found!");
 
-    const promise = axiosBase(user.token)
+    const promise = axiosBase(user.token, user.role)
       .post(`/category`, values)
       .then(() => {
         form.reset();

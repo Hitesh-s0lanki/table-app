@@ -22,57 +22,67 @@ import { toast } from "sonner";
 import ErrorPage from "../common/error";
 import { axiosBase, SERVER_URI } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useEditTaskModal } from "@/hooks/use-edit-tasks";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { useCallback, useEffect, useState } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { editTaskFormSchema } from "@/schemas";
+import { editUserRoleFormSchema } from "@/schemas";
+import { useChangeRoleModal } from "@/hooks/use-change-role";
+import NpmSelect from "../common/NpmSelect";
+import { Role, User } from "@/types";
+import { getRoles, getUserById } from "@/hooks/use-client-function";
+import { currentUser } from "@/lib/auth";
 
 const EditUserRoleModal = () => {
   const router = useRouter();
-  const user = useCurrentUser();
+  const currentUser = useCurrentUser();
 
-  const { isOpen, onClose, task } = useEditTaskModal();
+  const [user, setUser] = useState<User | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const formSchema = editTaskFormSchema;
+  const { isOpen, onClose, id } = useChangeRoleModal();
+
+  const formSchema = editUserRoleFormSchema;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!task) return toast.error("User not found!");
-    if (!user) return toast.error("User not found!");
-
-    if (task.status !== values.status) {
-      const promise = axiosBase(user.token)
-        .patch(`${SERVER_URI}/tasks/${task.id}`, values)
-        .then(() => {
-          router.refresh();
-          form.reset();
-        })
-        .finally(() => onClose());
-      toast.promise(promise, {
-        loading: "Editing a Category...",
-        success: "Successfully updated the category",
-        error: "Something went wrong in updating a category",
-      });
+  const onLoad = useCallback(async () => {
+    const { users, message } = await getUserById(id, currentUser);
+    const { roles, message: RoleMessage } = await getRoles(currentUser);
+    if (message || RoleMessage) {
+      setError(message || RoleMessage);
     } else {
-      toast.warning("No Update in data");
-      onClose();
+      setUser(users);
+      setRoles(roles);
     }
+  }, [id]);
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    //   if (!task) return toast.error("User not found!");
+    //   if (!user) return toast.error("User not found!");
+    //   if (task.status !== values.status) {
+    //     const promise = axiosBase(user.token)
+    //       .patch(`${SERVER_URI}/tasks/${task.id}`, values)
+    //       .then(() => {
+    //         router.refresh();
+    //         form.reset();
+    //       })
+    //       .finally(() => onClose());
+    //     toast.promise(promise, {
+    //       loading: "Editing a Category...",
+    //       success: "Successfully updated the category",
+    //       error: "Something went wrong in updating a category",
+    //     });
+    //   } else {
+    //     toast.warning("No Update in data");
+    //     onClose();
+    //   }
   };
 
   useEffect(() => {
-    if (task) {
-      form.setValue("status", task.status);
-    }
-  }, [task, form]);
+    onLoad();
+  }, [onLoad]);
 
   return (
     <Dialog
@@ -83,15 +93,15 @@ const EditUserRoleModal = () => {
       }}
     >
       <DialogContent>
-        {task ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Edit Task Status</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </DialogDescription>
-            </DialogHeader>
+        <>
+          <DialogHeader>
+            <DialogTitle>Edit User Role</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          {user && (
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -99,26 +109,24 @@ const EditUserRoleModal = () => {
               >
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="roleId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={task.status}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select the Status of Tasks" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="PENDING">PENDING</SelectItem>
-                          <SelectItem value="TODO">TODO</SelectItem>
-                          <SelectItem value="INPROGRESS">INPROGRESS</SelectItem>
-                          <SelectItem value="COMPLETE">COMPLETE</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Change Role</FormLabel>
+                      <FormControl>
+                        <NpmSelect
+                          isLoading={loading}
+                          options={role.map((user: User) => ({
+                            value: subcategory.id,
+                            label: subcategory.name,
+                          }))}
+                          onChange={(value) => {
+                            form.setValue("category", value.value, {
+                              shouldValidate: true,
+                            });
+                          }}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -130,10 +138,8 @@ const EditUserRoleModal = () => {
                 </div>
               </form>
             </Form>
-          </>
-        ) : (
-          <ErrorPage title="Task not provided!" />
-        )}
+          )}
+        </>
       </DialogContent>
     </Dialog>
   );

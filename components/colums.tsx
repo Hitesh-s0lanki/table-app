@@ -45,6 +45,7 @@ import { Badge } from "./ui/badge";
 import { useEditProjectModal } from "@/hooks/use-edit-project";
 import { ImProfile } from "react-icons/im";
 import { Checkbox } from "./ui/checkbox";
+import { useChangeRoleModal } from "@/hooks/use-change-role";
 
 export const Columns: (
   table: TableType,
@@ -56,6 +57,7 @@ export const Columns: (
   const { onOpen: handleSubCategoryEdit } = useEditSubCategoryModal();
   const { onOpen: handleTaskEdit } = useEditTaskModal();
   const { onOpen: handleProjectEdit } = useEditProjectModal();
+  const { onOpen: handleUserRoleEdit } = useChangeRoleModal();
 
   const categoryColumns: ColumnDef<Category>[] = [
     {
@@ -130,7 +132,7 @@ export const Columns: (
               </DropdownMenuItem>
               <ConfirmModal
                 onConfirm={() => {
-                  const promise = axiosBase(user?.token!)
+                  const promise = axiosBase(user?.token!, user?.role)
                     .patch(`${SERVER_URI}/category/${category.id}`, {
                       isArchived: true,
                     })
@@ -765,10 +767,13 @@ export const Columns: (
               <DropdownMenuItem
                 onClick={() => router.push(`/users/${product.id}`)}
               >
-                <CassetteTape className="h-4 w-4 mr-2" />
                 show more
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleUserRoleEdit(product.id)}>
+                <Edit className="h-4 w-4 mr-2" />
+                change Role
+              </DropdownMenuItem>
               <ConfirmModal
                 onConfirm={() => {
                   const promise = axiosBase(user?.token!)

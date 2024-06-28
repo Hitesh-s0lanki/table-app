@@ -188,3 +188,9 @@ export const editTaskFormSchema = z.object({
     }),
 });
 
+export const editUserRoleFormSchema = z.object({
+    roleId: z.string({
+        required_error: "Please select an status to display.",
+    }),
+});
+
